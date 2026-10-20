@@ -1,0 +1,199 @@
+{
+  "name": "Unread Email Summariser",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        -16
+      ],
+      "id": "b28cdd77-6fe4-4d16-9c47-43dc678b4524",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 5,
+        "filters": {
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -96,
+        -16
+      ],
+      "id": "0f23bd2e-97ca-46ad-85c1-ad3f3081ecc3",
+      "name": "Get many messages",
+      "webhookId": "a390db6d-e5da-4d8d-b4f0-8160a0164df1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wWPwi7Znp8BNUDZb",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=   Write ONE line (20 words maximum) describing this email.\n   No greeting, no heading, no extra text.\n   From: {{ $json.From }}\n   Subject: {{ $json.Subject }}\n   Preview: {{ $json.snippet }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        128,
+        -16
+      ],
+      "id": "11983b5b-3604-42cc-ab59-cb286b267ffb",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -16,
+        192
+      ],
+      "id": "1c0d5546-c432-461b-9911-1a80f3a36bc7",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6HusaytFB0UPXhfH",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "output"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        496,
+        -16
+      ],
+      "id": "0722d808-ab20-4eb4-9fdc-a00f61216214",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "sendTo": "Srikanth.ai1221@gmail.com",
+        "subject": "Your 5 Unread emails",
+        "emailType": "text",
+        "message": "={{ $json.output.join('\\n\\n') }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        -16
+      ],
+      "id": "a14cbb9a-49da-49e8-80f9-30027b9d06f7",
+      "name": "Send a message",
+      "webhookId": "9d13d961-0043-499f-8895-53b0813e0ccc",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wWPwi7Znp8BNUDZb",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "eb3db44a-1a5e-4c31-a2fd-f0b876cad554",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "838107492829fc83f127078c70df528dacb07805c036f59ca5b53fb43c34f68b"
+  },
+  "nodeGroups": [],
+  "id": "X9NLztl2F9WFXJwi",
+  "tags": []
+}
